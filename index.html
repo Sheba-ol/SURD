@@ -77,11 +77,12 @@ body{background:var(--bg);color:var(--text);font-family:var(--body);min-height:1
 @keyframes loadDot{0%,100%{transform:scale(.5);opacity:.3}50%{transform:scale(1);opacity:1}}
 #app{display:none;flex-direction:column;height:100vh;max-width:480px;margin:0 auto;background:var(--bg)}
 #app.active{display:flex}
-.top-nav{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0}
-.nav-logo{font-family:var(--font);font-size:22px;font-weight:800;background:linear-gradient(135deg,var(--accent),var(--accent3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.nav-actions{display:flex;gap:8px}
-.nav-btn{width:36px;height:36px;border-radius:50%;background:var(--card);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;transition:all .2s}
-.nav-btn:hover{border-color:var(--accent)}
+.top-nav{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:rgba(7,9,14,.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);flex-shrink:0;position:sticky;top:0;z-index:10}
+.nav-logo{font-family:var(--font);font-size:20px;font-weight:800;background:linear-gradient(135deg,var(--accent),var(--accent3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.nav-actions{display:flex;gap:6px}
+.nav-btn{width:34px;height:34px;border-radius:50%;background:transparent;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s}
+.nav-btn:hover{background:rgba(255,255,255,.08)}
+.nav-btn svg{width:20px;height:20px;stroke:var(--t2);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .tab-content{flex:1;overflow-y:auto;overflow-x:hidden}
 .tab-panel{display:none}
 .tab-panel.active{display:block}
@@ -102,10 +103,14 @@ body{background:var(--bg);color:var(--text);font-family:var(--body);min-height:1
 .post-name{font-family:var(--font);font-size:14px;font-weight:600}
 .post-time{font-size:11px;color:var(--t3)}
 .post-body{padding:0 16px 14px;font-size:14px;line-height:1.65;color:var(--t2)}
-.post-actions{display:flex;border-top:1px solid var(--border)}
-.post-action{flex:1;padding:11px;display:flex;align-items:center;justify-content:center;gap:5px;cursor:pointer;font-size:12px;color:var(--t2);transition:all .2s;border:none;background:none}
-.post-action:hover{color:var(--accent)}
+.post-actions{display:flex;border-top:1px solid var(--border);padding:4px 8px}
+.post-action{flex:1;padding:9px 6px;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;font-size:13px;color:var(--t2);transition:all .2s;border:none;background:none;border-radius:var(--r);font-family:var(--body)}
+.post-action:hover{background:rgba(0,229,255,.08)}
+.post-action:hover.like-btn{background:rgba(255,60,172,.08);color:var(--accent2)}
+.post-action:hover.comment-btn{background:rgba(0,229,255,.08);color:var(--accent)}
+.post-action:hover.share-btn{background:rgba(123,47,255,.08);color:var(--accent3)}
 .post-action.liked{color:var(--accent2)}
+.post-action svg{width:18px;height:18px;flex-shrink:0}
 .new-post-box{margin:0 14px 14px;background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:14px}
 .new-post-input{width:100%;background:none;border:none;outline:none;font-family:var(--body);font-size:14px;color:var(--text);resize:none;line-height:1.5}
 .new-post-input::placeholder{color:var(--t3)}
@@ -249,12 +254,15 @@ body{background:var(--bg);color:var(--text);font-family:var(--body);min-height:1
 .comment-input::placeholder{color:var(--t3)}
 .comment-send{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent3));border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;flex-shrink:0}
 .comment-count{font-size:12px;color:var(--t2)}
-.bottom-nav{display:flex;background:var(--surface);border-top:1px solid var(--border);flex-shrink:0}
-.bnav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:11px 8px 9px;cursor:pointer;gap:3px}
-.bnav-icon{font-size:21px;transition:transform .2s}
-.bnav-label{font-size:9px;font-family:var(--font);font-weight:600;letter-spacing:.5px;color:var(--t3);text-transform:uppercase}
-.bnav-item.active .bnav-label{color:var(--accent)}
+.bottom-nav{display:flex;background:var(--bg);border-top:1px solid var(--border);flex-shrink:0;padding:4px 0}
+.bnav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 4px 8px;cursor:pointer;gap:0;position:relative}
+.bnav-icon{width:26px;height:26px;transition:transform .15s;display:flex;align-items:center;justify-content:center}
+.bnav-icon svg{width:26px;height:26px;stroke:var(--t2);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;transition:all .2s}
+.bnav-label{display:none}
+.bnav-item.active .bnav-icon svg{stroke:var(--accent);fill:rgba(0,229,255,.1)}
 .bnav-item.active .bnav-icon{transform:scale(1.1)}
+.bnav-dot{width:5px;height:5px;border-radius:50%;background:var(--accent2);position:absolute;top:6px;right:calc(50% - 16px);display:none}
+.bnav-dot.show{display:block}
 /* ── PWA INSTALL BANNER ── */
 #install-banner{position:fixed;bottom:0;left:0;right:0;background:linear-gradient(135deg,var(--accent3),var(--accent));padding:16px 20px;display:none;align-items:center;gap:14px;z-index:500;max-width:480px;margin:0 auto;border-radius:var(--r2) var(--r2) 0 0;box-shadow:0 -8px 32px rgba(0,229,255,.2)}
 #install-banner.show{display:flex;animation:slideUp .4s ease}
@@ -360,7 +368,10 @@ body{background:var(--bg);color:var(--text);font-family:var(--body);min-height:1
     <div id="li-error" class="error-msg"></div>
     <div class="form-group"><label class="form-label">Email</label><input class="form-input" type="email" id="li-email" placeholder="your@email.com"/></div>
     <div class="form-group"><label class="form-label">Password</label><input class="form-input" type="password" id="li-pass" placeholder="Your password"/></div>
-    <button class="btn btn-primary" id="li-btn" style="margin-top:8px" onclick="doLogin()">Sign In</button>
+    <div style="text-align:right;margin-top:-6px;margin-bottom:14px">
+      <a onclick="showForgotPassword()" style="font-size:13px;color:var(--accent);cursor:pointer;font-family:var(--font)">Forgot password?</a>
+    </div>
+    <button class="btn btn-primary" id="li-btn" style="margin-top:4px" onclick="doLogin()">Sign In</button>
     <div class="divider">or</div>
     <div class="auth-switch">Don't have an account? <a onclick="goTo('signup')">Sign Up</a></div>
   </div>
@@ -371,9 +382,15 @@ body{background:var(--bg);color:var(--text);font-family:var(--body);min-height:1
   <div class="top-nav">
     <div class="nav-logo">SURD</div>
     <div class="nav-actions">
-      <div class="nav-btn" onclick="showBot()">🤖</div>
-      <div class="nav-btn" onclick="showPremium()">👑</div>
-      <div class="nav-btn" onclick="switchTab('profile')">👤</div>
+      <div class="nav-btn" onclick="showBot()" title="SURD AI">
+        <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M12 11V7m-4 4V9a4 4 0 018 0v2"/><circle cx="9" cy="16" r="1" fill="currentColor"/><circle cx="15" cy="16" r="1" fill="currentColor"/></svg>
+      </div>
+      <div class="nav-btn" onclick="showPremium()" title="Premium">
+        <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" stroke="var(--gold)" stroke-width="1.8"/></svg>
+      </div>
+      <div class="nav-btn" onclick="switchTab('profile')" title="Profile">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+      </div>
     </div>
   </div>
   <div class="tab-content">
@@ -458,11 +475,22 @@ body{background:var(--bg);color:var(--text);font-family:var(--body);min-height:1
     </div>
   </div>
   <div class="bottom-nav">
-    <div class="bnav-item active" id="bnav-home" onclick="switchTab('home')"><div class="bnav-icon">🏠</div><div class="bnav-label">Home</div></div>
-    <div class="bnav-item" id="bnav-chats" onclick="switchTab('chats')"><div class="bnav-icon">💬</div><div class="bnav-label">Chats</div></div>
-    <div class="bnav-item" id="bnav-search" onclick="switchTab('search')"><div class="bnav-icon">🔍</div><div class="bnav-label">Search</div></div>
-    <div class="bnav-item" id="bnav-discover" onclick="switchTab('discover')"><div class="bnav-icon">🌐</div><div class="bnav-label">Discover</div></div>
-    <div class="bnav-item" id="bnav-profile" onclick="switchTab('profile')"><div class="bnav-icon">👤</div><div class="bnav-label">Profile</div></div>
+    <div class="bnav-item active" id="bnav-home" onclick="switchTab('home')">
+      <div class="bnav-icon"><svg viewBox="0 0 24 24"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H5a1 1 0 01-1-1V9.5z"/><path d="M9 21V12h6v9"/></svg></div>
+    </div>
+    <div class="bnav-item" id="bnav-search" onclick="switchTab('search')">
+      <div class="bnav-icon"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg></div>
+    </div>
+    <div class="bnav-item" id="bnav-chats" onclick="switchTab('chats')">
+      <div class="bnav-icon"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div>
+      <div class="bnav-dot" id="chat-dot"></div>
+    </div>
+    <div class="bnav-item" id="bnav-discover" onclick="switchTab('discover')">
+      <div class="bnav-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M14.5 9.5l-5 2-2 5 5-2 2-5z"/></svg></div>
+    </div>
+    <div class="bnav-item" id="bnav-profile" onclick="switchTab('profile')">
+      <div class="bnav-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg></div>
+    </div>
   </div>
 </div>
 
@@ -564,6 +592,22 @@ body{background:var(--bg);color:var(--text);font-family:var(--body);min-height:1
       </div>
     </div>
     <button class="modal-pay-btn" onclick="doPay()">💳 Subscribe with Paystack</button>
+  </div>
+</div>
+
+<!-- FORGOT PASSWORD MODAL -->
+<div class="modal-overlay" id="forgot-modal" onclick="if(event.target===this)closeForgot()">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title" style="font-size:20px">Reset Password 🔑</div>
+    <div style="padding:0 24px 24px">
+      <p style="font-size:14px;color:var(--t2);margin-bottom:20px">Enter your email and we'll send a reset link.</p>
+      <div id="forgot-error" class="error-msg"></div>
+      <div id="forgot-success" style="background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);border-radius:var(--r);padding:10px 14px;font-size:13px;color:#22c55e;margin-bottom:12px;display:none">✅ Check your email for the reset link!</div>
+      <div class="form-group"><label class="form-label">Email</label><input class="form-input" type="email" id="forgot-email" placeholder="your@email.com"/></div>
+      <button class="btn btn-primary" id="forgot-btn" onclick="doForgotPassword()" style="margin-top:8px">Send Reset Link</button>
+      <button class="btn btn-secondary" onclick="closeForgot()" style="margin-top:10px">Cancel</button>
+    </div>
   </div>
 </div>
 
@@ -838,9 +882,18 @@ async function loadPosts() {
         ${p.content ? `<div class="post-body">${escHtml(p.content)}</div>` : ''}
         ${imgHtml}
         <div class="post-actions">
-          <button class="post-action" onclick="likePost(this)">❤️ Like</button>
-          <button class="post-action" onclick="toggleComments('${p.id}')">💬 <span id="ccount-${p.id}">Comment</span></button>
-          <button class="post-action" onclick="sharePost('${escAttr(p.content||'')}')">🔁 Share</button>
+          <button class="post-action like-btn" onclick="likePost(this)">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span class="like-count">Like</span>
+          </button>
+          <button class="post-action comment-btn" onclick="toggleComments('${p.id}')">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span id="ccount-${p.id}">Reply</span>
+          </button>
+          <button class="post-action share-btn" onclick="sharePost('${escAttr(p.content||'')}')">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span>Share</span>
+          </button>
         </div>
         <div class="comments-section" id="comments-${p.id}">
           <div id="comments-list-${p.id}"></div>
@@ -976,7 +1029,20 @@ async function checkFollowStatus(userId, btn) {
   if (data) { btn.classList.add('following'); btn.textContent = '✓ Following'; }
 }
 
-function likePost(btn) { btn.classList.toggle('liked'); btn.textContent = btn.classList.contains('liked') ? '❤️ Liked' : '❤️ Like'; }
+function likePost(btn) {
+  btn.classList.toggle('liked');
+  const span = btn.querySelector('.like-count');
+  const svg = btn.querySelector('svg path');
+  if (btn.classList.contains('liked')) {
+    span.textContent = '1';
+    if(svg) svg.style.fill = 'var(--accent2)';
+    btn.style.color = 'var(--accent2)';
+  } else {
+    span.textContent = 'Like';
+    if(svg) svg.style.fill = 'none';
+    btn.style.color = '';
+  }
+}
 
 async function toggleComments(postId) {
   const section = document.getElementById('comments-' + postId);
@@ -1115,14 +1181,56 @@ function subscribeMessages() {
     }).subscribe();
 }
 
+// ══ FORGOT PASSWORD ══
+function showForgotPassword() { document.getElementById('forgot-modal').classList.add('active'); }
+function closeForgot() {
+  document.getElementById('forgot-modal').classList.remove('active');
+  document.getElementById('forgot-error').classList.remove('show');
+  document.getElementById('forgot-success').style.display = 'none';
+  document.getElementById('forgot-email').value = '';
+}
+
+async function doForgotPassword() {
+  const email = document.getElementById('forgot-email').value.trim();
+  document.getElementById('forgot-error').classList.remove('show');
+  document.getElementById('forgot-success').style.display = 'none';
+  if (!email) { showErr('forgot-error', 'Please enter your email'); return; }
+  setBtnLoad('forgot-btn', true, 'Send Reset Link');
+  const { error } = await db.auth.resetPasswordForEmail(email, {
+    redirectTo: window.location.origin
+  });
+  setBtnLoad('forgot-btn', false, 'Send Reset Link');
+  if (error) { showErr('forgot-error', error.message); }
+  else { document.getElementById('forgot-success').style.display = 'block'; }
+}
+
+// ══ FAST MESSAGE SENDING (optimistic UI) ══
 async function sendMsg() {
   const inp = document.getElementById('cr-input');
-  const content = inp.value.trim(); if (!content||!currentUser||!currentChatUser) return;
-  inp.value=''; inp.style.height='auto';
-  document.getElementById('send-btn').disabled = true;
+  const content = inp.value.trim();
+  if (!content || !currentUser || !currentChatUser) return;
+  inp.value = ''; inp.style.height = 'auto';
+  // Show message instantly (optimistic)
+  const msgs = document.getElementById('cr-messages');
+  const es = msgs.querySelector('.empty-state'); if(es) es.remove();
+  const tempId = 'temp-' + Date.now();
+  const now = new Date().toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
+  msgs.innerHTML += `<div class="msg sent" id="${tempId}"><div class="msg-bubble">${escHtml(content)}</div><div class="msg-time">${now} <span style="color:var(--t3)">•</span></div></div>`;
+  msgs.scrollTop = msgs.scrollHeight;
+  // Send to database
   const { error } = await db.from('messages').insert({ sender_id: currentUser.id, receiver_id: currentChatUser.id, content });
-  document.getElementById('send-btn').disabled = false;
-  if (error) showToast('Send failed: ' + error.message);
+  if (error) {
+    // Remove optimistic message if failed
+    document.getElementById(tempId)?.remove();
+    showToast('Failed to send: ' + error.message);
+  } else {
+    // Update tick to show delivered
+    const tempMsg = document.getElementById(tempId);
+    if (tempMsg) {
+      const timeEl = tempMsg.querySelector('.msg-time');
+      if (timeEl) timeEl.innerHTML = `${now} <span style="color:var(--accent)">✓✓</span>`;
+    }
+  }
 }
 
 // ══ DISCOVER ══
