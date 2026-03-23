@@ -208,6 +208,21 @@ body{background:var(--bg);color:var(--text);font-family:var(--body);min-height:1
 .modal-pay-btn:hover{transform:translateY(-2px)}
 .edit-av-preview{width:72px;height:72px;border-radius:50%;background:var(--card);border:2px dashed var(--border);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:28px;cursor:pointer;margin:0 auto 18px}
 .edit-av-preview img{width:100%;height:100%;object-fit:cover}
+/* COMMENTS */
+.comments-section{border-top:1px solid var(--border);padding:12px 16px;display:none}
+.comments-section.open{display:block}
+.comment-item{display:flex;gap:10px;margin-bottom:12px;align-items:flex-start}
+.comment-av{width:30px;height:30px;border-radius:50%;background:var(--surface);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.comment-av img{width:100%;height:100%;object-fit:cover}
+.comment-bubble{background:var(--surface);border-radius:12px;border-bottom-left-radius:4px;padding:8px 12px;flex:1}
+.comment-name{font-family:var(--font);font-size:12px;font-weight:600;margin-bottom:2px}
+.comment-text{font-size:13px;color:var(--t2);line-height:1.4}
+.comment-input-row{display:flex;gap:8px;align-items:center;margin-top:8px}
+.comment-input{flex:1;background:var(--surface);border:1.5px solid var(--border);border-radius:20px;padding:8px 14px;font-family:var(--body);font-size:13px;color:var(--text);outline:none;transition:border-color .2s}
+.comment-input:focus{border-color:var(--accent)}
+.comment-input::placeholder{color:var(--t3)}
+.comment-send{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent3));border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;flex-shrink:0}
+.comment-count{font-size:12px;color:var(--t2)}
 .bottom-nav{display:flex;background:var(--surface);border-top:1px solid var(--border);flex-shrink:0}
 .bnav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:11px 8px 9px;cursor:pointer;gap:3px}
 .bnav-icon{font-size:21px;transition:transform .2s}
@@ -674,7 +689,7 @@ async function loadPosts() {
     if (!data || data.length === 0) { c.innerHTML = `<div class="empty-state"><div class="es-icon">📝</div><p>No posts yet.<br/>Be the first to post!</p></div>`; return; }
     c.innerHTML = data.map(p => {
       const av = p.profiles?.avatar_url ? `<img src="${p.profiles.avatar_url}" alt="av"/>` : '😊';
-      return `<div class="post-card">
+      return `<div class="post-card" id="post-${p.id}">
         <div class="post-header">
           <div class="post-av">${av}</div>
           <div style="flex:1"><div class="post-name">${p.profiles?.name||'User'}</div><div class="post-time">${p.profiles?.handle||''} · ${timeAgo(p.created_at)}</div></div>
@@ -682,8 +697,15 @@ async function loadPosts() {
         <div class="post-body">${escHtml(p.content)}</div>
         <div class="post-actions">
           <button class="post-action" onclick="likePost(this)">❤️ Like</button>
-          <button class="post-action">💬 Comment</button>
-          <button class="post-action">🔁 Share</button>
+          <button class="post-action" onclick="toggleComments('${p.id}')">💬 <span id="ccount-${p.id}">Comment</span></button>
+          <button class="post-action" onclick="sharePost('${escAttr(p.content)}')">🔁 Share</button>
+        </div>
+        <div class="comments-section" id="comments-${p.id}">
+          <div id="comments-list-${p.id}"></div>
+          <div class="comment-input-row">
+            <input class="comment-input" id="cinput-${p.id}" placeholder="Write a comment..." onkeydown="if(event.key==='Enter')submitComment('${p.id}')"/>
+            <button class="comment-send" onclick="submitComment('${p.id}')">➤</button>
+          </div>
         </div>
       </div>`;
     }).join('');
@@ -702,6 +724,57 @@ async function createPost() {
 }
 
 function likePost(btn) { btn.classList.toggle('liked'); btn.textContent = btn.classList.contains('liked') ? '❤️ Liked' : '❤️ Like'; }
+
+async function toggleComments(postId) {
+  const section = document.getElementById('comments-' + postId);
+  const isOpen = section.classList.contains('open');
+  section.classList.toggle('open');
+  if (!isOpen) await loadComments(postId);
+}
+
+async function loadComments(postId) {
+  const list = document.getElementById('comments-list-' + postId);
+  list.innerHTML = `<div style="text-align:center;padding:10px;color:var(--t2)"><span class="spin spin-w"></span></div>`;
+  const { data, error } = await db.from('comments')
+    .select('*, profiles(name, avatar_url)')
+    .eq('post_id', postId)
+    .order('created_at', { ascending: true });
+  if (error || !data || data.length === 0) {
+    list.innerHTML = `<div style="text-align:center;padding:10px;font-size:12px;color:var(--t3)">No comments yet. Be first! 👇</div>`;
+    return;
+  }
+  list.innerHTML = data.map(c => {
+    const av = c.profiles?.avatar_url ? `<img src="${c.profiles.avatar_url}" alt="av"/>` : '😊';
+    return `<div class="comment-item">
+      <div class="comment-av">${av}</div>
+      <div class="comment-bubble">
+        <div class="comment-name">${c.profiles?.name||'User'}</div>
+        <div class="comment-text">${escHtml(c.content)}</div>
+      </div>
+    </div>`;
+  }).join('');
+  // Update comment count
+  const ccount = document.getElementById('ccount-' + postId);
+  if (ccount) ccount.textContent = data.length + ' Comment' + (data.length !== 1 ? 's' : '');
+}
+
+async function submitComment(postId) {
+  const input = document.getElementById('cinput-' + postId);
+  const content = input.value.trim();
+  if (!content || !currentUser) return;
+  input.value = '';
+  const { error } = await db.from('comments').insert({ post_id: postId, user_id: currentUser.id, content });
+  if (!error) { await loadComments(postId); }
+  else showToast('Comment failed: ' + error.message);
+}
+
+function sharePost(content) {
+  if (navigator.share) {
+    navigator.share({ title: 'SURD Post', text: content, url: window.location.href });
+  } else {
+    navigator.clipboard?.writeText(content).then(() => showToast('Post copied to clipboard! 📋'));
+  }
+}
 
 // ══ CHATS ══
 async function loadChatList() {
