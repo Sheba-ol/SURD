@@ -424,7 +424,7 @@ input[type=file]{display:none}
 </div>
 
 <!-- USER PROFILE VIEW -->
-<div id="user-profile-page" style="display:none;flex-direction:column;height:100vh;max-width:480px;margin:0 auto;background:var(--bg);overflow-y:auto">
+<div id="user-profile-page" style="display:none;flex-direction:column;height:100vh;max-width:480px;margin:0 auto;background:var(--bg);overflow-y:auto;position:fixed;inset:0;z-index:50">
   <div style="display:flex;align-items:center;gap:12px;padding:13px 16px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0">
     <div class="chat-topbar-back" onclick="closeUserProfile()">‹</div>
     <div style="font-family:var(--font);font-size:16px;font-weight:700" id="up-title">Profile</div>
@@ -762,7 +762,7 @@ async function loadPosts() {
   c.innerHTML = `<div style="text-align:center;padding:32px;color:var(--t2)"><span class="spin spin-w"></span></div>`;
   try {
     const { data, error } = await db.from('posts')
-      .select('id, content, created_at, user_id, profiles(name, handle, avatar_url)')
+      .select('id, content, image_url, created_at, user_id, profiles(name, handle, avatar_url)')
       .order('created_at', { ascending: false }).limit(20);
     if (error) { console.error('Posts error:', error); c.innerHTML = `<div class="empty-state"><div class="es-icon">⚠️</div><p>Could not load posts.<br/>Check your SQL policies.</p></div>`; return; }
     if (!data || data.length === 0) { c.innerHTML = `<div class="empty-state"><div class="es-icon">📝</div><p>No posts yet.<br/>Be the first to post!</p></div>`; return; }
@@ -1018,11 +1018,7 @@ async function openChat(userId, name, avatarUrl) {
 function closeChat() {
   if (msgSub) { db.removeChannel(msgSub); msgSub = null; }
   document.getElementById('chatroom').style.display = 'none';
-  if (currentViewUserId) {
-    document.getElementById('user-profile-page').style.display = 'flex';
-  } else {
-    document.getElementById('app').style.display = 'flex';
-  }
+  document.getElementById('app').style.display = 'flex';
   currentChatUser = null;
 }
 
@@ -1097,17 +1093,17 @@ async function openUserProfile(userId) {
   currentViewUserId = userId;
   const page = document.getElementById('user-profile-page');
   page.style.display = 'flex';
-  document.getElementById('app').style.display = 'none';
+  page.scrollTop = 0;
   // Load profile data
   const { data: p } = await db.from('profiles').select('*').eq('id', userId).single();
-  if (!p) return;
+  if (!p) { showToast('Could not load profile'); return; }
   currentViewUserAv = p.avatar_url || '';
   document.getElementById('up-title').textContent = p.name || 'Profile';
   document.getElementById('up-name').textContent = p.name || 'User';
   document.getElementById('up-handle').textContent = p.handle || '@user';
   document.getElementById('up-bio').textContent = p.bio || 'No bio yet.';
   const avEl = document.getElementById('up-av');
-  avEl.innerHTML = p.avatar_url ? `<img src="${p.avatar_url}" alt="${p.name}" style="width:100%;height:100%;object-fit:cover"/>` : '👤';
+  avEl.innerHTML = p.avatar_url ? `<img src="${p.avatar_url}" alt="${p.name}" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>` : '👤';
   // Check follow status
   const followBtn = document.getElementById('up-follow-btn');
   followBtn.classList.remove('following');
@@ -1115,9 +1111,8 @@ async function openUserProfile(userId) {
   followBtn.style.background = 'transparent';
   followBtn.style.color = 'var(--accent)';
   checkFollowStatus(userId, followBtn);
-  // Load stats
+  // Load stats and posts
   await loadUserProfileStats(userId);
-  // Load their posts
   loadUserPosts(userId);
 }
 
@@ -1147,8 +1142,8 @@ async function loadUserPosts(userId) {
 
 function closeUserProfile() {
   document.getElementById('user-profile-page').style.display = 'none';
-  document.getElementById('app').style.display = 'flex';
   currentViewUserId = null;
+  currentViewUserAv = '';
 }
 
 // ══ AI BOT (using Supabase Edge Function to avoid CORS) ══
