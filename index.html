@@ -423,6 +423,35 @@ input[type=file]{display:none}
   </div>
 </div>
 
+<!-- USER PROFILE VIEW -->
+<div id="user-profile-page" style="display:none;flex-direction:column;height:100vh;max-width:480px;margin:0 auto;background:var(--bg);overflow-y:auto">
+  <div style="display:flex;align-items:center;gap:12px;padding:13px 16px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0">
+    <div class="chat-topbar-back" onclick="closeUserProfile()">‹</div>
+    <div style="font-family:var(--font);font-size:16px;font-weight:700" id="up-title">Profile</div>
+  </div>
+  <div style="height:140px;background:linear-gradient(135deg,var(--accent3),var(--accent),var(--accent2));position:relative;flex-shrink:0">
+    <div style="position:absolute;bottom:-34px;left:20px;width:70px;height:70px;border-radius:50%;border:3px solid var(--bg);background:var(--card);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:28px" id="up-av">👤</div>
+  </div>
+  <div style="padding:44px 20px 16px">
+    <div style="font-family:var(--font);font-size:22px;font-weight:800" id="up-name">—</div>
+    <div style="font-size:13px;color:var(--t2);margin-top:2px" id="up-handle">@—</div>
+    <div style="font-size:14px;color:var(--t2);margin-top:8px;line-height:1.6" id="up-bio">No bio yet.</div>
+    <div style="display:flex;gap:24px;margin-top:14px">
+      <div><div class="stat-n" id="up-posts">0</div><div class="stat-l">Posts</div></div>
+      <div><div class="stat-n" id="up-followers">0</div><div class="stat-l">Followers</div></div>
+      <div><div class="stat-n" id="up-following">0</div><div class="stat-l">Following</div></div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:16px">
+      <button id="up-follow-btn" onclick="toggleFollowBtn(this, currentViewUserId);setTimeout(()=>loadUserProfileStats(currentViewUserId),500)" style="flex:1;padding:11px;border-radius:var(--r);font-family:var(--font);font-size:14px;font-weight:600;cursor:pointer;border:1.5px solid var(--accent);color:var(--accent);background:transparent;transition:all .2s">+ Follow</button>
+      <button onclick="openChat(currentViewUserId, document.getElementById('up-name').textContent, currentViewUserAv);closeUserProfile()" style="flex:1;padding:11px;border-radius:var(--r);font-family:var(--font);font-size:14px;font-weight:600;cursor:pointer;background:var(--card);border:1.5px solid var(--border);color:var(--text)">💬 Message</button>
+    </div>
+  </div>
+  <div style="border-top:1px solid var(--border);padding:16px 20px">
+    <div style="font-family:var(--font);font-size:15px;font-weight:700;margin-bottom:12px">Posts</div>
+    <div id="up-posts-list"></div>
+  </div>
+</div>
+
 <!-- BOT PAGE -->
 <div id="botpage">
   <div class="bot-topbar">
@@ -828,15 +857,15 @@ async function searchUsers() {
     }
     results.innerHTML = `<div class="search-results">` + data.map(p => {
       const av = p.avatar_url ? `<img src="${p.avatar_url}" alt="${p.name}"/>` : '😊';
-      return `<div class="user-result">
+      return `<div class="user-result" onclick="openUserProfile('${p.id}')">
         <div class="user-result-av">${av}</div>
         <div class="user-result-info">
           <div class="user-result-name">${p.name||'User'}</div>
           <div class="user-result-handle">${p.handle||''} ${p.bio ? '· ' + p.bio.substring(0,30) + (p.bio.length>30?'...':'') : ''}</div>
         </div>
         <div style="display:flex;gap:6px">
-          <button class="user-result-btn" id="follow-btn-${p.id}" onclick="event.stopPropagation();toggleFollowBtn(this,'${p.id}');checkFollowCounts()" >+ Follow</button>
-          <button class="user-result-btn" style="border-color:var(--t3);color:var(--t2)" onclick="event.stopPropagation();openChat('${p.id}','${escAttr(p.name||'User')}','${p.avatar_url||''}');switchTab('chats')">💬</button>
+          <button class="user-result-btn" id="follow-btn-${p.id}" onclick="event.stopPropagation();toggleFollowBtn(this,'${p.id}');checkFollowCounts()">+ Follow</button>
+          <button class="user-result-btn" style="border-color:var(--t3);color:var(--t2)" onclick="event.stopPropagation();openChat('${p.id}','${escAttr(p.name||'User')}','${p.avatar_url||''}')">💬</button>
         </div>
       </div>`;
     }).join('') + `</div>`;
@@ -981,6 +1010,7 @@ async function openChat(userId, name, avatarUrl) {
   avEl.innerHTML = avatarUrl ? `<img src="${avatarUrl}" alt="${name}"/>` : '😊';
   document.getElementById('chatroom').style.display = 'flex';
   document.getElementById('app').style.display = 'none';
+  document.getElementById('user-profile-page').style.display = 'none';
   await loadMessages();
   subscribeMessages();
 }
@@ -988,7 +1018,11 @@ async function openChat(userId, name, avatarUrl) {
 function closeChat() {
   if (msgSub) { db.removeChannel(msgSub); msgSub = null; }
   document.getElementById('chatroom').style.display = 'none';
-  document.getElementById('app').style.display = 'flex';
+  if (currentViewUserId) {
+    document.getElementById('user-profile-page').style.display = 'flex';
+  } else {
+    document.getElementById('app').style.display = 'flex';
+  }
   currentChatUser = null;
 }
 
@@ -1042,18 +1076,79 @@ async function loadPeople() {
   if (error||!data||data.length===0) { grid.innerHTML = `<div style="grid-column:1/-1" class="empty-state"><div class="es-icon">👥</div><p>No other users yet.<br/>Invite friends to join SURD!</p></div>`; return; }
   grid.innerHTML = data.map(p => {
     const av = p.avatar_url ? `<img src="${p.avatar_url}" alt="${p.name}"/>` : '😊';
-    return `<div class="people-card">
+    return `<div class="people-card" onclick="openUserProfile('${p.id}')">
       <div class="people-av">${av}</div>
       <div class="people-name">${p.name||'User'}</div>
       <div class="people-bio">${p.bio||'No bio'}</div>
       <button class="people-btn" id="disc-btn-${p.id}" onclick="event.stopPropagation();toggleFollowBtn(this,'${p.id}');checkFollowCounts()">+ Follow</button>
     </div>`;
   }).join('');
-  // Check real follow status for each person
   data.forEach(p => {
     const btn = document.getElementById('disc-btn-' + p.id);
     if (btn) checkFollowStatus(p.id, btn);
   });
+}
+
+// ══ USER PROFILE VIEW ══
+let currentViewUserId = null;
+let currentViewUserAv = '';
+
+async function openUserProfile(userId) {
+  currentViewUserId = userId;
+  const page = document.getElementById('user-profile-page');
+  page.style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+  // Load profile data
+  const { data: p } = await db.from('profiles').select('*').eq('id', userId).single();
+  if (!p) return;
+  currentViewUserAv = p.avatar_url || '';
+  document.getElementById('up-title').textContent = p.name || 'Profile';
+  document.getElementById('up-name').textContent = p.name || 'User';
+  document.getElementById('up-handle').textContent = p.handle || '@user';
+  document.getElementById('up-bio').textContent = p.bio || 'No bio yet.';
+  const avEl = document.getElementById('up-av');
+  avEl.innerHTML = p.avatar_url ? `<img src="${p.avatar_url}" alt="${p.name}" style="width:100%;height:100%;object-fit:cover"/>` : '👤';
+  // Check follow status
+  const followBtn = document.getElementById('up-follow-btn');
+  followBtn.classList.remove('following');
+  followBtn.textContent = '+ Follow';
+  followBtn.style.background = 'transparent';
+  followBtn.style.color = 'var(--accent)';
+  checkFollowStatus(userId, followBtn);
+  // Load stats
+  await loadUserProfileStats(userId);
+  // Load their posts
+  loadUserPosts(userId);
+}
+
+async function loadUserProfileStats(userId) {
+  const [{ count: postCount }, { count: followerCount }, { count: followingCount }] = await Promise.all([
+    db.from('posts').select('*', { count:'exact', head:true }).eq('user_id', userId),
+    db.from('follows').select('*', { count:'exact', head:true }).eq('following_id', userId),
+    db.from('follows').select('*', { count:'exact', head:true }).eq('follower_id', userId)
+  ]);
+  document.getElementById('up-posts').textContent = postCount || 0;
+  document.getElementById('up-followers').textContent = followerCount || 0;
+  document.getElementById('up-following').textContent = followingCount || 0;
+}
+
+async function loadUserPosts(userId) {
+  const list = document.getElementById('up-posts-list');
+  list.innerHTML = `<div style="text-align:center;padding:20px;color:var(--t2)"><span class="spin spin-w"></span></div>`;
+  const { data } = await db.from('posts').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(10);
+  if (!data || data.length === 0) { list.innerHTML = `<div class="empty-state" style="padding:24px"><div class="es-icon">📝</div><p>No posts yet</p></div>`; return; }
+  list.innerHTML = data.map(p => `
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:14px;margin-bottom:12px">
+      <div style="font-size:14px;color:var(--t2);line-height:1.6">${escHtml(p.content||'')}</div>
+      ${p.image_url ? `<img src="${p.image_url}" style="width:100%;border-radius:var(--r);margin-top:10px;max-height:200px;object-fit:cover"/>` : ''}
+      <div style="font-size:11px;color:var(--t3);margin-top:8px">${timeAgo(p.created_at)}</div>
+    </div>`).join('');
+}
+
+function closeUserProfile() {
+  document.getElementById('user-profile-page').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  currentViewUserId = null;
 }
 
 // ══ AI BOT (using Supabase Edge Function to avoid CORS) ══
