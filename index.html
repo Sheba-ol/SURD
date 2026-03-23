@@ -3,6 +3,12 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<meta name="theme-color" content="#07090e"/>
+<meta name="description" content="SURD — Connect. Chat. Vibe. The social app built for you."/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="SURD"/>
+<link rel="manifest" id="pwa-manifest"/>
 <title>SURD — Connect. Chat. Vibe.</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
@@ -249,7 +255,31 @@ body{background:var(--bg);color:var(--text);font-family:var(--body);min-height:1
 .bnav-label{font-size:9px;font-family:var(--font);font-weight:600;letter-spacing:.5px;color:var(--t3);text-transform:uppercase}
 .bnav-item.active .bnav-label{color:var(--accent)}
 .bnav-item.active .bnav-icon{transform:scale(1.1)}
-input[type=file]{display:none}
+/* ── PWA INSTALL BANNER ── */
+#install-banner{position:fixed;bottom:0;left:0;right:0;background:linear-gradient(135deg,var(--accent3),var(--accent));padding:16px 20px;display:none;align-items:center;gap:14px;z-index:500;max-width:480px;margin:0 auto;border-radius:var(--r2) var(--r2) 0 0;box-shadow:0 -8px 32px rgba(0,229,255,.2)}
+#install-banner.show{display:flex;animation:slideUp .4s ease}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.install-icon{font-size:32px;flex-shrink:0}
+.install-info{flex:1}
+.install-title{font-family:var(--font);font-size:15px;font-weight:700;color:#000}
+.install-sub{font-size:12px;color:rgba(0,0,0,.7);margin-top:2px}
+.install-btn{background:#000;color:#fff;border:none;padding:9px 16px;border-radius:20px;font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap}
+.install-close{background:none;border:none;font-size:20px;cursor:pointer;color:rgba(0,0,0,.6);padding:4px;flex-shrink:0}
+/* ── IN-APP NOTIFICATION ── */
+#notif-popup{position:fixed;top:16px;left:50%;transform:translateX(-50%) translateY(-120px);background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:12px 16px;display:flex;align-items:center;gap:12px;z-index:600;width:calc(100% - 32px);max-width:440px;box-shadow:0 8px 32px rgba(0,0,0,.4);transition:transform .4s cubic-bezier(.34,1.56,.64,1)}
+#notif-popup.show{transform:translateX(-50%) translateY(0)}
+.notif-av{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--accent3),var(--accent));display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;overflow:hidden}
+.notif-av img{width:100%;height:100%;object-fit:cover}
+.notif-info{flex:1;min-width:0}
+.notif-title{font-family:var(--font);font-size:13px;font-weight:700}
+.notif-body{font-size:12px;color:var(--t2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.notif-time{font-size:10px;color:var(--t3);flex-shrink:0}
+/* ── NOTIF PERMISSION CARD ── */
+.notif-permission-card{margin:0 14px 14px;background:linear-gradient(135deg,rgba(0,229,255,.08),rgba(123,47,255,.06));border:1px solid rgba(0,229,255,.2);border-radius:var(--r2);padding:16px;display:flex;align-items:center;gap:12px}
+.notif-perm-info{flex:1}
+.notif-perm-title{font-family:var(--font);font-size:14px;font-weight:700}
+.notif-perm-sub{font-size:12px;color:var(--t2);margin-top:2px}
+.notif-perm-btn{padding:8px 14px;border-radius:20px;background:linear-gradient(135deg,var(--accent),var(--accent3));border:none;font-family:var(--font);font-size:12px;font-weight:700;color:#000;cursor:pointer;white-space:nowrap}
 .toast{position:fixed;bottom:88px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:11px 20px;font-size:13px;font-family:var(--font);z-index:300;opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap;max-width:90vw}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .spin{display:inline-block;width:16px;height:16px;border:2px solid rgba(0,0,0,.2);border-top-color:#000;border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle;margin-right:6px}
@@ -264,6 +294,27 @@ input[type=file]{display:none}
   <div class="loading-dots"><div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div></div>
 </div>
 <div class="toast" id="toast"></div>
+
+<!-- PWA INSTALL BANNER -->
+<div id="install-banner">
+  <div class="install-icon">📱</div>
+  <div class="install-info">
+    <div class="install-title">Install SURD App</div>
+    <div class="install-sub">Add to home screen for the best experience</div>
+  </div>
+  <button class="install-btn" onclick="installApp()">Install</button>
+  <button class="install-close" onclick="dismissInstall()">✕</button>
+</div>
+
+<!-- IN-APP NOTIFICATION POPUP -->
+<div id="notif-popup">
+  <div class="notif-av" id="notif-av">🔔</div>
+  <div class="notif-info">
+    <div class="notif-title" id="notif-title">New notification</div>
+    <div class="notif-body" id="notif-body">You have a new message</div>
+  </div>
+  <div class="notif-time" id="notif-time">now</div>
+</div>
 
 <!-- SPLASH -->
 <div class="page" id="splash">
@@ -330,6 +381,14 @@ input[type=file]{display:none}
     <div class="tab-panel active" id="tab-home">
       <div class="feed-header"><div class="feed-title">Home</div><div class="premium-badge">✦ SURD</div></div>
       <div class="stories-row" id="stories-row"></div>
+      <div id="notif-permission-card" class="notif-permission-card" style="display:none">
+        <div style="font-size:28px">🔔</div>
+        <div class="notif-perm-info">
+          <div class="notif-perm-title">Enable Notifications</div>
+          <div class="notif-perm-sub">Get notified when someone messages or follows you</div>
+        </div>
+        <button class="notif-perm-btn" onclick="requestNotifPermission()">Enable</button>
+      </div>
       <div class="new-post-box">
         <textarea class="new-post-input" id="new-post-input" placeholder="What's on your mind?" rows="2"></textarea>
         <div class="post-img-preview" id="post-img-preview">
@@ -591,6 +650,8 @@ function showApp() {
   renderProfile();
   loadPosts();
   loadStories();
+  subscribeToNotifications();
+  setTimeout(checkNotifPermission, 2000);
 }
 
 function switchTab(tab) {
@@ -1205,6 +1266,195 @@ function timeAgo(d) { const s=Math.floor((Date.now()-new Date(d))/1000); if(s<60
 function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function escAttr(s) { return String(s).replace(/'/g,'&#39;').replace(/"/g,'&quot;'); }
 document.querySelectorAll('textarea').forEach(ta => { ta.addEventListener('input',function(){ this.style.height='auto'; this.style.height=Math.min(this.scrollHeight,80)+'px'; }); });
+
+// ══ PWA MANIFEST (created dynamically) ══
+(function() {
+  const manifest = {
+    name: 'SURD — Connect. Chat. Vibe.',
+    short_name: 'SURD',
+    description: 'The social app built for real connections',
+    start_url: '/',
+    display: 'standalone',
+    background_color: '#07090e',
+    theme_color: '#07090e',
+    orientation: 'portrait',
+    icons: [
+      { src: 'https://via.placeholder.com/192x192/00e5ff/000000?text=S', sizes: '192x192', type: 'image/png' },
+      { src: 'https://via.placeholder.com/512x512/00e5ff/000000?text=S', sizes: '512x512', type: 'image/png' }
+    ]
+  };
+  const blob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  document.getElementById('pwa-manifest').setAttribute('href', url);
+})();
+
+// ══ PWA INSTALL PROMPT ══
+let deferredInstallPrompt = null;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  // Show install banner after 3 seconds
+  setTimeout(() => {
+    if (!localStorage.getItem('surd-install-dismissed')) {
+      document.getElementById('install-banner').classList.add('show');
+    }
+  }, 3000);
+});
+
+window.addEventListener('appinstalled', () => {
+  document.getElementById('install-banner').classList.remove('show');
+  showToast('SURD installed successfully! 🎉');
+  deferredInstallPrompt = null;
+});
+
+async function installApp() {
+  if (deferredInstallPrompt) {
+    deferredInstallPrompt.prompt();
+    const { outcome } = await deferredInstallPrompt.userChoice;
+    if (outcome === 'accepted') { showToast('Installing SURD... 🚀'); }
+    deferredInstallPrompt = null;
+    document.getElementById('install-banner').classList.remove('show');
+  } else {
+    // iOS instructions
+    showInAppNotif('📱 Install on iOS', 'Tap the Share button then "Add to Home Screen"', '');
+  }
+}
+
+function dismissInstall() {
+  document.getElementById('install-banner').classList.remove('show');
+  localStorage.setItem('surd-install-dismissed', '1');
+}
+
+// Show iOS install hint if on Safari
+function checkIOSInstall() {
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  const isInStandaloneMode = window.navigator.standalone;
+  const dismissed = localStorage.getItem('surd-ios-dismissed');
+  if (isIOS && !isInStandaloneMode && !dismissed) {
+    setTimeout(() => {
+      showInAppNotif('📱 Install SURD', 'Tap Share → Add to Home Screen to install!', '');
+      localStorage.setItem('surd-ios-dismissed', '1');
+    }, 4000);
+  }
+}
+
+// ══ IN-APP NOTIFICATION POPUP ══
+let notifTimer = null;
+function showInAppNotif(title, body, avatarUrl) {
+  document.getElementById('notif-title').textContent = title;
+  document.getElementById('notif-body').textContent = body;
+  document.getElementById('notif-time').textContent = 'now';
+  const av = document.getElementById('notif-av');
+  av.innerHTML = avatarUrl ? `<img src="${avatarUrl}" alt="av"/>` : '🔔';
+  const popup = document.getElementById('notif-popup');
+  popup.classList.add('show');
+  clearTimeout(notifTimer);
+  notifTimer = setTimeout(() => popup.classList.remove('show'), 4000);
+}
+
+// Tap notification to dismiss
+document.getElementById('notif-popup').addEventListener('click', () => {
+  document.getElementById('notif-popup').classList.remove('show');
+});
+
+// ══ PUSH NOTIFICATIONS ══
+async function requestNotifPermission() {
+  document.getElementById('notif-permission-card').style.display = 'none';
+  if (!('Notification' in window)) { showToast('Notifications not supported on this browser'); return; }
+  const permission = await Notification.requestPermission();
+  if (permission === 'granted') {
+    showToast('Notifications enabled! 🔔');
+    localStorage.setItem('surd-notif-granted', '1');
+    showInAppNotif('🔔 Notifications On!', 'You\'ll be notified of new messages and follows', currentProfile?.avatar_url || '');
+  } else {
+    showToast('Notifications blocked. Enable in browser settings.');
+  }
+}
+
+function checkNotifPermission() {
+  if (!('Notification' in window)) return;
+  const card = document.getElementById('notif-permission-card');
+  if (Notification.permission === 'default' && !localStorage.getItem('surd-notif-granted')) {
+    card.style.display = 'flex';
+  } else {
+    card.style.display = 'none';
+  }
+}
+
+function sendBrowserNotif(title, body, icon) {
+  if (Notification.permission !== 'granted') return;
+  if (document.hasFocus()) return; // Only send when app is in background
+  try {
+    new Notification(title, {
+      body,
+      icon: icon || 'https://via.placeholder.com/64x64/00e5ff/000000?text=S',
+      badge: 'https://via.placeholder.com/32x32/00e5ff/000000?text=S',
+      tag: 'surd-notif',
+      vibrate: [200, 100, 200]
+    });
+  } catch(e) { console.log('Notification error:', e); }
+}
+
+// ══ SUBSCRIBE TO REAL-TIME NOTIFICATIONS ══
+function subscribeToNotifications() {
+  if (!currentUser) return;
+  const uid = currentUser.id;
+
+  // Listen for new messages
+  db.channel('notif-messages-' + uid)
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `receiver_id=eq.${uid}` },
+      async payload => {
+        const m = payload.new;
+        if (m.sender_id === currentChatUser?.id) return; // Already in that chat
+        // Get sender profile
+        const { data: sender } = await db.from('profiles').select('name,avatar_url').eq('id', m.sender_id).single();
+        const name = sender?.name || 'Someone';
+        const av = sender?.avatar_url || '';
+        // Show in-app popup
+        showInAppNotif(`💬 ${name}`, m.content, av);
+        // Send browser notification
+        sendBrowserNotif(`New message from ${name}`, m.content, av);
+      }
+    ).subscribe();
+
+  // Listen for new follows
+  db.channel('notif-follows-' + uid)
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'follows', filter: `following_id=eq.${uid}` },
+      async payload => {
+        const { data: follower } = await db.from('profiles').select('name,avatar_url').eq('id', payload.new.follower_id).single();
+        const name = follower?.name || 'Someone';
+        const av = follower?.avatar_url || '';
+        showInAppNotif(`✨ ${name} followed you!`, 'Check out their profile', av);
+        sendBrowserNotif(`${name} started following you!`, 'Open SURD to see', av);
+        // Update follower count
+        loadProfileStats();
+      }
+    ).subscribe();
+
+  // Listen for new comments on your posts
+  db.channel('notif-comments-' + uid)
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'comments' },
+      async payload => {
+        const c = payload.new;
+        if (c.user_id === uid) return; // Own comment
+        // Check if comment is on user's post
+        const { data: post } = await db.from('posts').select('user_id').eq('id', c.post_id).single();
+        if (post?.user_id !== uid) return;
+        const { data: commenter } = await db.from('profiles').select('name,avatar_url').eq('id', c.user_id).single();
+        const name = commenter?.name || 'Someone';
+        const av = commenter?.avatar_url || '';
+        showInAppNotif(`💬 ${name} commented`, c.content, av);
+        sendBrowserNotif(`${name} commented on your post`, c.content, av);
+      }
+    ).subscribe();
+}
+
+// Show install prompt and check notification permission when app loads
+window.addEventListener('load', () => {
+  checkIOSInstall();
+  setTimeout(checkNotifPermission, 2000);
+});
 </script>
 </body>
 </html>
