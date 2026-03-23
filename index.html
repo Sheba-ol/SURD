@@ -103,8 +103,28 @@ body{background:var(--bg);color:var(--text);font-family:var(--body);min-height:1
 .new-post-box{margin:0 14px 14px;background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:14px}
 .new-post-input{width:100%;background:none;border:none;outline:none;font-family:var(--body);font-size:14px;color:var(--text);resize:none;line-height:1.5}
 .new-post-input::placeholder{color:var(--t3)}
-.new-post-footer{display:flex;justify-content:flex-end;margin-top:10px}
+.new-post-footer{display:flex;justify-content:space-between;align-items:center;margin-top:10px}
 .post-btn{padding:8px 18px;border-radius:20px;background:linear-gradient(135deg,var(--accent),var(--accent3));border:none;font-family:var(--font);font-size:13px;font-weight:600;color:#000;cursor:pointer}
+.post-media-btn{width:34px;height:34px;border-radius:50%;background:var(--surface);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;transition:all .2s}
+.post-media-btn:hover{border-color:var(--accent)}
+.post-img-preview{width:100%;border-radius:var(--r);margin-top:10px;overflow:hidden;position:relative;display:none}
+.post-img-preview img{width:100%;max-height:200px;object-fit:cover;border-radius:var(--r)}
+.post-img-preview.show{display:block}
+.remove-img{position:absolute;top:8px;right:8px;width:26px;height:26px;border-radius:50%;background:rgba(0,0,0,.6);border:none;color:#fff;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.post-image{width:100%;max-height:300px;object-fit:cover}
+/* SEARCH PAGE */
+#tab-search .search-bar{margin:14px 14px 10px}
+.search-results{padding:0 0 14px}
+.user-result{display:flex;align-items:center;gap:12px;padding:12px 20px;cursor:pointer;transition:background .15s}
+.user-result:hover{background:rgba(255,255,255,.03)}
+.user-result-av{width:46px;height:46px;border-radius:50%;overflow:hidden;background:var(--card);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.user-result-av img{width:100%;height:100%;object-fit:cover}
+.user-result-info{flex:1}
+.user-result-name{font-family:var(--font);font-size:14px;font-weight:600}
+.user-result-handle{font-size:12px;color:var(--t2)}
+.user-result-btn{padding:6px 14px;border-radius:20px;border:1.5px solid var(--accent);color:var(--accent);background:transparent;font-family:var(--font);font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;white-space:nowrap}
+.user-result-btn.following{background:var(--accent);color:#000}
+.search-hint{text-align:center;padding:32px 20px;color:var(--t3);font-size:13px}
 .premium-badge{display:inline-flex;align-items:center;gap:4px;background:rgba(255,209,102,.1);border:1px solid rgba(255,209,102,.25);border-radius:20px;padding:3px 9px;font-size:10px;color:var(--gold);font-family:var(--font);font-weight:600}
 .empty-state{text-align:center;padding:48px 24px;color:var(--t2)}
 .empty-state .es-icon{font-size:40px;margin-bottom:12px}
@@ -312,7 +332,17 @@ input[type=file]{display:none}
       <div class="stories-row" id="stories-row"></div>
       <div class="new-post-box">
         <textarea class="new-post-input" id="new-post-input" placeholder="What's on your mind?" rows="2"></textarea>
-        <div class="new-post-footer"><button class="post-btn" onclick="createPost()">Post</button></div>
+        <div class="post-img-preview" id="post-img-preview">
+          <img id="post-img-preview-img" src="" alt="preview"/>
+          <button class="remove-img" onclick="removePostImage()">✕</button>
+        </div>
+        <div class="new-post-footer">
+          <div style="display:flex;gap:8px">
+            <div class="post-media-btn" onclick="document.getElementById('post-img-input').click()" title="Add photo">🖼️</div>
+            <input type="file" id="post-img-input" accept="image/*" onchange="previewPostImage(this)"/>
+          </div>
+          <button class="post-btn" onclick="createPost()">Post</button>
+        </div>
       </div>
       <div id="posts-container"></div>
     </div>
@@ -321,6 +351,18 @@ input[type=file]{display:none}
       <div class="section-header"><div class="section-title">Messages</div></div>
       <div class="search-bar"><span style="color:var(--t3)">🔍</span><input placeholder="Search people to chat..." id="chat-search" oninput="searchPeople()"/></div>
       <div id="chats-list"></div>
+    </div>
+    <!-- SEARCH -->
+    <div class="tab-panel" id="tab-search">
+      <div class="section-header"><div class="section-title">Search People</div></div>
+      <div class="search-bar" style="margin:0 14px 10px">
+        <span style="color:var(--t3)">🔍</span>
+        <input placeholder="Search by name or username..." id="main-search-input" oninput="searchUsers()"/>
+        <span id="search-spinner" style="display:none"><span class="spin spin-w"></span></span>
+      </div>
+      <div id="search-results">
+        <div class="search-hint">🔍 Search for people by name or username to connect with them!</div>
+      </div>
     </div>
     <!-- DISCOVER -->
     <div class="tab-panel" id="tab-discover">
@@ -359,7 +401,7 @@ input[type=file]{display:none}
   <div class="bottom-nav">
     <div class="bnav-item active" id="bnav-home" onclick="switchTab('home')"><div class="bnav-icon">🏠</div><div class="bnav-label">Home</div></div>
     <div class="bnav-item" id="bnav-chats" onclick="switchTab('chats')"><div class="bnav-icon">💬</div><div class="bnav-label">Chats</div></div>
-    <div class="bnav-item" onclick="showBot()"><div class="bnav-icon">🤖</div><div class="bnav-label">AI</div></div>
+    <div class="bnav-item" id="bnav-search" onclick="switchTab('search')"><div class="bnav-icon">🔍</div><div class="bnav-label">Search</div></div>
     <div class="bnav-item" id="bnav-discover" onclick="switchTab('discover')"><div class="bnav-icon">🌐</div><div class="bnav-label">Discover</div></div>
     <div class="bnav-item" id="bnav-profile" onclick="switchTab('profile')"><div class="bnav-icon">👤</div><div class="bnav-label">Profile</div></div>
   </div>
@@ -636,9 +678,17 @@ function renderProfile() {
 
 async function loadProfileStats() {
   if (!currentUser) return;
-  const { count } = await db.from('posts').select('*', { count:'exact', head:true }).eq('user_id', currentUser.id);
-  document.getElementById('stat-posts').textContent = count || 0;
+  const [{ count: postCount }, { count: followerCount }, { count: followingCount }] = await Promise.all([
+    db.from('posts').select('*', { count:'exact', head:true }).eq('user_id', currentUser.id),
+    db.from('follows').select('*', { count:'exact', head:true }).eq('following_id', currentUser.id),
+    db.from('follows').select('*', { count:'exact', head:true }).eq('follower_id', currentUser.id)
+  ]);
+  document.getElementById('stat-posts').textContent = postCount || 0;
+  document.getElementById('stat-followers').textContent = followerCount || 0;
+  document.getElementById('stat-following').textContent = followingCount || 0;
 }
+
+async function checkFollowCounts() { await loadProfileStats(); }
 
 async function saveProfile() {
   if (!currentUser) return;
@@ -689,16 +739,18 @@ async function loadPosts() {
     if (!data || data.length === 0) { c.innerHTML = `<div class="empty-state"><div class="es-icon">📝</div><p>No posts yet.<br/>Be the first to post!</p></div>`; return; }
     c.innerHTML = data.map(p => {
       const av = p.profiles?.avatar_url ? `<img src="${p.profiles.avatar_url}" alt="av"/>` : '😊';
+      const imgHtml = p.image_url ? `<img class="post-image" src="${p.image_url}" alt="post image"/>` : '';
       return `<div class="post-card" id="post-${p.id}">
         <div class="post-header">
           <div class="post-av">${av}</div>
           <div style="flex:1"><div class="post-name">${p.profiles?.name||'User'}</div><div class="post-time">${p.profiles?.handle||''} · ${timeAgo(p.created_at)}</div></div>
         </div>
-        <div class="post-body">${escHtml(p.content)}</div>
+        ${p.content ? `<div class="post-body">${escHtml(p.content)}</div>` : ''}
+        ${imgHtml}
         <div class="post-actions">
           <button class="post-action" onclick="likePost(this)">❤️ Like</button>
           <button class="post-action" onclick="toggleComments('${p.id}')">💬 <span id="ccount-${p.id}">Comment</span></button>
-          <button class="post-action" onclick="sharePost('${escAttr(p.content)}')">🔁 Share</button>
+          <button class="post-action" onclick="sharePost('${escAttr(p.content||'')}')">🔁 Share</button>
         </div>
         <div class="comments-section" id="comments-${p.id}">
           <div id="comments-list-${p.id}"></div>
@@ -712,15 +764,126 @@ async function loadPosts() {
   } catch(e) { c.innerHTML = `<div class="empty-state"><div class="es-icon">⚠️</div><p>${e.message}</p></div>`; }
 }
 
+let pendingPostImageFile = null;
+
+function previewPostImage(input) {
+  const file = input.files[0]; if (!file) return;
+  pendingPostImageFile = file;
+  const reader = new FileReader();
+  reader.onload = e => {
+    document.getElementById('post-img-preview-img').src = e.target.result;
+    document.getElementById('post-img-preview').classList.add('show');
+  };
+  reader.readAsDataURL(file);
+}
+
+function removePostImage() {
+  pendingPostImageFile = null;
+  document.getElementById('post-img-preview').classList.remove('show');
+  document.getElementById('post-img-input').value = '';
+}
+
+async function uploadPostImage(userId) {
+  if (!pendingPostImageFile) return null;
+  try {
+    const ext = pendingPostImageFile.name.split('.').pop();
+    const path = `${userId}/post-${Date.now()}.${ext}`;
+    const { error } = await db.storage.from('posts').upload(path, pendingPostImageFile, { upsert: false });
+    if (error) { console.error('Post image upload error:', error); return null; }
+    return db.storage.from('posts').getPublicUrl(path).data.publicUrl;
+  } catch(e) { return null; }
+}
+
 async function createPost() {
   const input = document.getElementById('new-post-input');
   const content = input.value.trim();
-  if (!content) { showToast('Write something first!'); return; }
+  if (!content && !pendingPostImageFile) { showToast('Write something or add a photo!'); return; }
   if (!currentUser) { showToast('Please sign in first'); return; }
+  showToast('Posting...');
+  let imageUrl = null;
+  if (pendingPostImageFile) imageUrl = await uploadPostImage(currentUser.id);
   input.value = '';
-  const { error } = await db.from('posts').insert({ user_id: currentUser.id, content });
+  removePostImage();
+  const { error } = await db.from('posts').insert({ user_id: currentUser.id, content: content || '', image_url: imageUrl });
   if (!error) { showToast('Posted! 🚀'); loadPosts(); loadProfileStats(); }
   else { showToast('Post failed: ' + error.message); console.error(error); }
+}
+
+// ══ SEARCH USERS ══
+let searchTimeout = null;
+async function searchUsers() {
+  const q = document.getElementById('main-search-input').value.trim();
+  const results = document.getElementById('search-results');
+  if (!q) { results.innerHTML = `<div class="search-hint">🔍 Search for people by name or username!</div>`; return; }
+  clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(async () => {
+    document.getElementById('search-spinner').style.display = 'inline';
+    const { data } = await db.from('profiles').select('*')
+      .or(`name.ilike.%${q}%,handle.ilike.%${q}%`)
+      .neq('id', currentUser?.id || '').limit(15);
+    document.getElementById('search-spinner').style.display = 'none';
+    if (!data || data.length === 0) {
+      results.innerHTML = `<div class="search-hint">😕 No users found for "<strong>${escHtml(q)}</strong>"<br/>Try a different name or username</div>`;
+      return;
+    }
+    results.innerHTML = `<div class="search-results">` + data.map(p => {
+      const av = p.avatar_url ? `<img src="${p.avatar_url}" alt="${p.name}"/>` : '😊';
+      return `<div class="user-result">
+        <div class="user-result-av">${av}</div>
+        <div class="user-result-info">
+          <div class="user-result-name">${p.name||'User'}</div>
+          <div class="user-result-handle">${p.handle||''} ${p.bio ? '· ' + p.bio.substring(0,30) + (p.bio.length>30?'...':'') : ''}</div>
+        </div>
+        <div style="display:flex;gap:6px">
+          <button class="user-result-btn" id="follow-btn-${p.id}" onclick="event.stopPropagation();toggleFollowBtn(this,'${p.id}');checkFollowCounts()" >+ Follow</button>
+          <button class="user-result-btn" style="border-color:var(--t3);color:var(--t2)" onclick="event.stopPropagation();openChat('${p.id}','${escAttr(p.name||'User')}','${p.avatar_url||''}');switchTab('chats')">💬</button>
+        </div>
+      </div>`;
+    }).join('') + `</div>`;
+    // Check follow status for each result
+    data.forEach(p => {
+      const btn = document.getElementById('follow-btn-' + p.id);
+      if (btn) checkFollowStatus(p.id, btn);
+    });
+  }, 400);
+}
+
+async function toggleFollowBtn(btn, userId) {
+  if (!currentUser) { showToast('Please sign in first'); return; }
+  const isFollowing = btn.classList.contains('following');
+  btn.disabled = true;
+  if (isFollowing) {
+    // Unfollow
+    const { error } = await db.from('follows')
+      .delete()
+      .eq('follower_id', currentUser.id)
+      .eq('following_id', userId);
+    if (!error) {
+      btn.classList.remove('following');
+      btn.textContent = '+ Follow';
+      showToast('Unfollowed');
+    } else showToast('Error: ' + error.message);
+  } else {
+    // Follow
+    const { error } = await db.from('follows')
+      .insert({ follower_id: currentUser.id, following_id: userId });
+    if (!error) {
+      btn.classList.add('following');
+      btn.textContent = '✓ Following';
+      showToast('Following! 🎉');
+    } else showToast('Error: ' + error.message);
+  }
+  btn.disabled = false;
+}
+
+async function checkFollowStatus(userId, btn) {
+  if (!currentUser) return;
+  const { data } = await db.from('follows')
+    .select('id')
+    .eq('follower_id', currentUser.id)
+    .eq('following_id', userId)
+    .single();
+  if (data) { btn.classList.add('following'); btn.textContent = '✓ Following'; }
 }
 
 function likePost(btn) { btn.classList.toggle('liked'); btn.textContent = btn.classList.contains('liked') ? '❤️ Liked' : '❤️ Like'; }
@@ -883,15 +1046,14 @@ async function loadPeople() {
       <div class="people-av">${av}</div>
       <div class="people-name">${p.name||'User'}</div>
       <div class="people-bio">${p.bio||'No bio'}</div>
-      <button class="people-btn" onclick="event.stopPropagation();toggleFollow(this)">+ Follow</button>
+      <button class="people-btn" id="disc-btn-${p.id}" onclick="event.stopPropagation();toggleFollowBtn(this,'${p.id}');checkFollowCounts()">+ Follow</button>
     </div>`;
   }).join('');
-}
-
-function toggleFollow(btn) {
-  btn.classList.toggle('following');
-  btn.textContent = btn.classList.contains('following') ? '✓ Following' : '+ Follow';
-  showToast(btn.classList.contains('following') ? 'Following! 🎉' : 'Unfollowed');
+  // Check real follow status for each person
+  data.forEach(p => {
+    const btn = document.getElementById('disc-btn-' + p.id);
+    if (btn) checkFollowStatus(p.id, btn);
+  });
 }
 
 // ══ AI BOT (using Supabase Edge Function to avoid CORS) ══
